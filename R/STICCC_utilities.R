@@ -1076,7 +1076,7 @@ smoothVector <- function(sce,
   neighbor.ids <- neighbors[["neighbor.ids"]]
   neighbor.dists <- neighbors[["neighbor.dists"]]
   
-  if(neighbor.dists[1] == 0) {
+  while(neighbor.dists[1] == 0) {
     neighbor.ids <- neighbor.ids[2:length(neighbor.ids)]
     neighbor.dists <- neighbor.dists[2:length(neighbor.dists)]
   }
