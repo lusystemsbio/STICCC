@@ -268,22 +268,44 @@ computeGrid <- function(sce,
 #' @return viccc object with defined grid points in PCA space
 #' @import SingleCellExperiment
 #' @param sce viccc object. Must have already executed the function runPCA().
-#' @param usePCs logical. Whether to use PCs instead of gene expression values for distance computation.
-#' Setting to FALSE may drastically increase runtime in datasets with many genes. Default TRUE.
-#' @param numPCs numeric. How many PCs to use for distance computation. Larger values will take
+#' @param est logical. Whether to estimate the max distance with a downsampled subset of data. Default TRUE.
+#' @param useGenes logical. Whether to use full gene space to calculate distance. Setting this to TRUE
+#' will significantly slow down the operation. Default FALSE.
+#' @param reduction character. Which reduced space to use for distance calculation. Currently only supports "PCA"/
+#' @param nComponents numeric. How many PCs to use for distance computation. Larger values will take
 #' longer, especially for large datasets, but also incorporate more information. Default 10.
 computeDist <- function(sce,
-                        usePCs=TRUE,
-                        numPCs=10) {
-
-  if(usePCs) {
-    PCAmat <- reducedDim(sce,"PCA")
-    sce@metadata$dist_mat <- as.matrix(dist(PCAmat[,1:min(numPCs, ncol(PCAmat))], method = "euclidean"))
-  } else {
+                        est=TRUE,
+                        useGenes=FALSE,
+                        reduction="PCA",
+                        nComponents=10) {
+  
+  
+  if(useGenes) {
     exprMat <- assay(sce,"normcounts")
-    sce@metadata$dist_mat <- as.matrix(dist(t(exprMat), method = "euclidean"))
+    dist_space <- t(exprMat)
+    
+  } else{
+    if(is.na(reduction)) {
+      print("Error: must specify reduction if useGenes is FALSE")
+      return(NULL)
+    } else if(reduction == "PCA") {
+        PCAmat <- reducedDim(sce,"PCA")
+        dist_space <- PCAmat[,1:min(nComponents, ncol(PCAmat))]
+    } 
   }
-  sce@metadata$max_dist <- max(sce@metadata$dist_mat)
+
+  if(est) {
+    sample_idx <- sample(1:nrow(dist_space), min(2000, nrow(dist_space)))
+    sample_mat <- dist_space[sample_idx, ]
+    max_dist_est <- max(dist(sample_mat, method = "euclidean"))
+    sce@metadata$max_dist <- max_dist_est
+    
+  } else {
+    sce@metadata$dist_mat <- as.matrix(dist(dist_space, method = "euclidean"))
+    sce@metadata$max_dist <- max(sce@metadata$dist_mat)
+  }
+  
 
   return(sce)
 }
@@ -811,8 +833,8 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
   rs_list[["Y"]] <- query_data[2]
   
   ## Find neighbors
-  neighbors <- which(sce@metadata$dist_mat[query_point,colnames(sce)] <= sampling_radius)
-  #neighbors <- neighbors[which(neighbors %in% colnames(sce))]
+  #neighbors <- which(sce@metadata$dist_mat[query_point,colnames(sce)] <= sampling_radius)
+  neighbors <- getNeighbors(sce, query_point, sce@metadata$params$sample_radius)
   
   ## Skip sample if number of neighbors too small
   if(length(neighbors) <= (sce@metadata$params$minNeighbors+1)) {

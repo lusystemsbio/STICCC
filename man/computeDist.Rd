@@ -4,15 +4,25 @@
 \alias{computeDist}
 \title{Compute pairwise distance between single cells in PCA space}
 \usage{
-computeDist(sce, usePCs = TRUE, numPCs = 10)
+computeDist(
+  sce,
+  est = TRUE,
+  useGenes = FALSE,
+  reduction = "PCA",
+  nComponents = 10
+)
 }
 \arguments{
 \item{sce}{viccc object. Must have already executed the function runPCA().}
 
-\item{usePCs}{logical. Whether to use PCs instead of gene expression values for distance computation.
-Setting to FALSE may drastically increase runtime in datasets with many genes. Default TRUE.}
+\item{est}{logical. Whether to estimate the max distance with a downsampled subset of data. Default TRUE.}
 
-\item{numPCs}{numeric. How many PCs to use for distance computation. Larger values will take
+\item{useGenes}{logical. Whether to use full gene space to calculate distance. Setting this to TRUE
+will significantly slow down the operation. Default FALSE.}
+
+\item{reduction}{character. Which reduced space to use for distance calculation. Currently only supports "PCA"/}
+
+\item{nComponents}{numeric. How many PCs to use for distance computation. Larger values will take
 longer, especially for large datasets, but also incorporate more information. Default 10.}
 }
 \value{
