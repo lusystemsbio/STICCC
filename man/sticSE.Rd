@@ -16,7 +16,8 @@ sticSE(
   gridScalingFactor = 1,
   verbose = T,
   useOriginalFeatures = F,
-  nPCs = NA
+  nPCs = NA,
+  plotDim = "PCA"
 )
 }
 \arguments{
@@ -43,6 +44,12 @@ Default 5.}
 \item{gridScalingFactor}{numeric. Factor to multiply the magnitude of vectors when applying grid-based smoothing. Default 1.}
 
 \item{verbose}{logical. Whether to print progress statements during analysis with this VICCC object. Default TRUE.}
+
+\item{useOriginalFeatures}{logical. Whether to calculate vectors in gene space instead of projected space. Default FALSE.}
+
+\item{nPCs}{numeric. How many components to use for distance calculation and vector output.}
+
+\item{plotDim}{character. What reduced dimension to calculate and display vectors in. Can be "PCA", "UMAP", or "TSNE". Default "PCA".}
 }
 \value{
 SingleCellExperiment object modified slightly for VICCC methods.

@@ -4,7 +4,13 @@
 \alias{getNeighbors}
 \title{Get nearby samples for a given query sample.}
 \usage{
-getNeighbors(sce, queryPoint, neighborhoodRadius)
+getNeighbors(
+  sce,
+  queryPoint,
+  neighborhoodRadius,
+  useGenes = FALSE,
+  reduction = "PCA"
+)
 }
 \arguments{
 \item{sce}{sticcc object}
@@ -14,6 +20,11 @@ the normalized expression data.}
 
 \item{neighborhoodRadius}{numeric. Proportion of the maximum pairwise distance within sce to find
 neighbors.}
+
+\item{useGenes}{logical. Whether to use full gene space to calculate distance. Setting this to TRUE
+will significantly slow down the operation. Default FALSE.}
+
+\item{reduction}{character. Which reduced space to use for distance calculation. Currently only supports "PCA".}
 }
 \value{
 A list containing the following elements: "neighbor.ids": the names of the nearby samples,

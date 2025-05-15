@@ -66,6 +66,9 @@ simTopo <- function(topo,
 #' @param scalingFactor numeric. Factor to multiply the magnitude of vectors for easier visual interpretation. Default 1.
 #' @param gridScalingFactor numeric. Factor to multiply the magnitude of vectors when applying grid-based smoothing. Default 1.
 #' @param verbose logical. Whether to print progress statements during analysis with this VICCC object. Default TRUE.
+#' @param useOriginalFeatures logical. Whether to calculate vectors in gene space instead of projected space. Default FALSE.
+#' @param nPCs numeric. How many components to use for distance calculation and vector output. 
+#' @param plotDim character. What reduced dimension to calculate and display vectors in. Can be "PCA", "UMAP", or "TSNE". Default "PCA".
 sticSE <- function(topo,
                   exprMat = NA,
                   normData,
@@ -77,7 +80,8 @@ sticSE <- function(topo,
                   gridScalingFactor = 1,
                   verbose = T,
                   useOriginalFeatures = F,
-                  nPCs = NA
+                  nPCs = NA,
+                  plotDim = "PCA"
                   ) {
   if(!all(is.na(exprMat))) {
     stic <- SingleCellExperiment(assays = SimpleList(counts=exprMat, normcounts=normData))  
@@ -98,7 +102,8 @@ sticSE <- function(topo,
   stic@metadata$topo <- topo
 
   stic@metadata$params <- list(sample_radius=radius, plotScalingFactor=scalingFactor, gridPlotScalingFactor=gridScalingFactor,
-                              minNeighbors=minNeighbors, verbose=verbose, useOriginalFeatures=useOriginalFeatures, nPCs=nPCs)
+                              minNeighbors=minNeighbors, verbose=verbose, useOriginalFeatures=useOriginalFeatures, nPCs=nPCs,
+                              plotDim=plotDim)
   return(stic)
 }
 
@@ -220,7 +225,17 @@ computeGrid <- function(sce,
                         yMax = NA
 ) {
   # Get posMat
-  posMat <- reducedDim(sce, "PCA")
+  if(sce@metadata$params$plotDim == "PCA") {
+    plot_mat <- reducedDim(sce, "PCA")
+  } else if(sce@metadata$params$plotDim == "TSNE") {
+    plot_mat <- reducedDim(sce, "TSNE")
+  } else if(sce@metadata$params$plotDim == "UMAP") {
+    plot_mat <- reducedDim(sce, "UMAP")
+  }
+  
+  posMat <- plot_mat[colnames(sce),1:min(sce@metadata$params$nPCs, ncol(plot_mat))]
+  
+
 
   # Define grid points, create metadata structure for later
   ## Create uniform grid
@@ -814,11 +829,19 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
   }
 
   # use first nPCs PCs as spatial coordinates unless genes are specified
-  pcaMat <- reducedDim(sce, "PCA")[colnames(sce),1:nPCs]
   if(sce@metadata$params$useOriginalFeatures) {
     posMat <- as.data.frame(t(assay(sce, "normcounts")))[colnames(sce),]
   } else {
-    posMat <- pcaMat
+    if(sce@metadata$params$plotDim == "PCA") {
+      plot_mat <- reducedDim(sce, "PCA")
+    } else if(sce@metadata$params$plotDim == "TSNE") {
+      plot_mat <- reducedDim(sce, "TSNE")
+    } else if(sce@metadata$params$plotDim == "UMAP") {
+      plot_mat <- reducedDim(sce, "UMAP")
+    }
+    
+    posMat <- plot_mat[colnames(sce),1:min(nPCs, ncol(plot_mat))]
+    
   }
   
   posList <- colnames(posMat)
@@ -1190,23 +1213,42 @@ smoothVector <- function(sce,
 #' the normalized expression data.
 #' @param neighborhoodRadius numeric. Proportion of the maximum pairwise distance within sce to find
 #' neighbors.
+#' @param useGenes logical. Whether to use full gene space to calculate distance. Setting this to TRUE
+#' will significantly slow down the operation. Default FALSE.
+#' @param reduction character. Which reduced space to use for distance calculation. Currently only supports "PCA".
 getNeighbors <- function(sce,
                          queryPoint,
-                         neighborhoodRadius) {
+                         neighborhoodRadius,
+                         useGenes = FALSE,
+                         reduction = "PCA") {
   # Find neighborhood members
   if(all(queryPoint %in% colnames(sce))) {
     queryData <- assay(sce)[,queryPoint]
-  } else if(length(queryPoint) != nrow(assay(sce)))  {
-    print(paste0("Error: query should be a colname of sce or have same rows as sce assay: ",nrow(assay(sce))))
-    return(NULL)
-  } else {
+  } #else if(length(queryPoint) != nrow(assay(sce)))  {
+    #print(paste0("Error: query should be a colname of sce or have same rows as sce assay: ",nrow(assay(sce))))
+    #return(NULL)
+  else {
     queryData <- queryPoint
+  }
+  
+  
+  if(useGenes) {
+    exprMat <- assay(sce,"normcounts")
+    dist_space <- t(exprMat)
+  } else{
+    if(is.na(reduction)) {
+      print("Error: must specify reduction if useGenes is FALSE")
+      return(NULL)
+    } else if(reduction == "PCA") {
+      PCAmat <- reducedDim(sce,"PCA")
+      dist_space <- PCAmat[,1:min(sce@metadata$params$nPCs, ncol(PCAmat))]
+    } 
   }
   
   max_dist <- sce@metadata$max_dist
   lim_dist <- max_dist * neighborhoodRadius
   est_k <- ncol(sce)*neighborhoodRadius*2
-  neighbors <- FNN::get.knnx(data=reducedDim(sce,"PCA")[,1:sce@metadata$params$nPCs], query=queryData, k=est_k)
+  neighbors <- FNN::get.knnx(data=dist_space, query=queryData, k=est_k)
   
   # filter for those below neighborhoodRadius
   neighborIDs <- neighbors$nn.index[which(neighbors$nn.dist <= lim_dist)]
