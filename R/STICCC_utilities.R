@@ -70,7 +70,8 @@ simTopo <- function(topo,
 #' @param gridScalingFactor numeric. Factor to multiply the magnitude of vectors when applying grid-based smoothing. Default 1.
 #' @param verbose logical. Whether to print progress statements during analysis with this VICCC object. Default TRUE.
 #' @param useOriginalFeatures logical. Whether to calculate vectors in gene space instead of projected space. Default FALSE.
-#' @param nPCs numeric. How many components to use for distance calculation and vector output. 
+#' @param nPCs numeric. How many components to use for vector output. 
+#' @param nDistPCs numeric. How many components to use for distance calculation. 
 #' @param plotDim character. What reduced dimension to calculate and display vectors in. Can be "PCA", "UMAP", or "TSNE". Default "PCA".
 sticSE <- function(topo,
                   exprMat = NA,
@@ -106,7 +107,7 @@ sticSE <- function(topo,
 
   stic@metadata$params <- list(sample_radius=radius, plotScalingFactor=scalingFactor, gridPlotScalingFactor=gridScalingFactor,
                               minNeighbors=minNeighbors, verbose=verbose, useOriginalFeatures=useOriginalFeatures, nPCs=nPCs,
-                              plotDim=plotDim)
+                              nDistPCs=nDistPCs, plotDim=plotDim)
   return(stic)
 }
 
@@ -295,14 +296,13 @@ computeGrid <- function(sce,
 #' @param useGenes logical. Whether to use full gene space to calculate distance. Setting this to TRUE
 #' will significantly slow down the operation. Default FALSE.
 #' @param reduction character. Which reduced space to use for distance calculation. Currently only supports "PCA"/
-#' @param nComponents numeric. How many PCs to use for distance computation. Larger values will take
-#' longer, especially for large datasets, but also incorporate more information. Default 10.
 computeDist <- function(sce,
                         est=TRUE,
                         useGenes=FALSE,
-                        reduction="PCA",
-                        nComponents=10) {
+                        reduction="PCA") {
   
+  
+  nComponents <- sce@metadata$params$nDistPCs
   
   if(useGenes) {
     exprMat <- assay(sce,"normcounts")
@@ -864,13 +864,14 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
   exprMat <- assay(sce,"normcounts")
   
   # Get query point data
+  neighbor_query <- reducedDim(sce,"PCA")[query_point,]
   query_data <- posMat[query_point,]
   rs_list[["X"]] <- query_data[1]
   rs_list[["Y"]] <- query_data[2]
   
   ## Find neighbors
   #neighbors <- which(sce@metadata$dist_mat[query_point,colnames(sce)] <= sampling_radius)
-  neighbors <- getNeighbors(sce, query_data, sce@metadata$params$sample_radius)
+  neighbors <- getNeighbors(sce, neighbor_query, sce@metadata$params$sample_radius)$neighbor.ids
   
   ## Skip sample if number of neighbors too small
   if(length(neighbors) <= (sce@metadata$params$minNeighbors+1)) {
@@ -1236,6 +1237,8 @@ getNeighbors <- function(sce,
                          neighborhoodRadius,
                          useGenes = FALSE,
                          reduction = "PCA") {
+  
+  nComponents <- sce@metadata$params$nDistPCs
   # Find neighborhood members
   #if(all(queryPoint %in% colnames(sce))) {
   #  queryData <- assay(sce)[,queryPoint]
@@ -1243,7 +1246,7 @@ getNeighbors <- function(sce,
     #print(paste0("Error: query should be a colname of sce or have same rows as sce assay: ",nrow(assay(sce))))
     #return(NULL)
   #else {
-  queryData <- t(matrix(queryPoint))
+  queryData <- t(as.matrix(t(queryPoint)[,1:min(nComponents, length(queryPoint))])) # dont ask
   #}
   
   
@@ -1256,7 +1259,7 @@ getNeighbors <- function(sce,
       return(NULL)
     } else if(reduction == "PCA") {
       PCAmat <- reducedDim(sce,"PCA")
-      dist_space <- PCAmat[,1:min(sce@metadata$params$nPCs, ncol(PCAmat))]
+      dist_space <- PCAmat[,1:min(nComponents, ncol(PCAmat))]
     } 
   }
   
