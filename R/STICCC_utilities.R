@@ -1,8 +1,11 @@
 #' @export
+utils::globalVariables(c("X", "Y", "dX", "dY", "PC1", "PC2", "gene"))
+
 #' @title Load topology file
 #' @description Returns a data.frame from reading a .tpo file with 3 columns: Source, Target, Type. Type 1 indicates
 #' activation and type 2 indicates inhibition.
 #' @return data.frame of a network topology.
+#' @importFrom utils read.table
 #' @param topoName character. Filename of a .tpo topology table (do not include file extension).
 #' @param topoDir character. Path to the directory containing the .tpo file. Defaults to "input_topos"
 #' and will create this directory if needed.
@@ -114,6 +117,8 @@ sticSE <- function(topo,
 #' substituted with a previously existing data.frame and is only necessary if no metadata table
 #' exists. This will also divide the dataset into k clusters using the ward.d2 method.
 #' @return data.frame with cells as rows and metadata characteristics as columns.
+#' @importFrom SummarizedExperiment colData<-
+#' @importFrom S4Vectors DataFrame
 #' @param sce SingleCellExperiment object.
 #' @param exprMat data.frame or matrix. Non-normalized expression matrix with rows as features
 #' and columns as cells.
@@ -139,7 +144,7 @@ prepMetadata <- function(sce,
 #' @title Cluster by gene expression.
 #' @description Returns a vector of cluster numbers corresponding to each cell in a dataset.
 #' @return data.frame with cells as rows and metadata characteristics as columns.
-#' @importFrom stats hclust
+#' @importFrom stats hclust cutree
 #' @param k numeric. Number of clusters.
 #' @param matrix data.frame or matrix. Non-normalized expression matrix with rows as features
 #' and columns as cells.
@@ -172,6 +177,7 @@ getClusters <- function(k = 2,                  # Number of clusters
 #' @description Returns a vector of cluster numbers corresponding to each cell in a dataset.
 #' @return modified viccc object containing pca transformed data in reducedDim(obj, "PCA") and pca parameters in obj@metadata$pca_data.
 #' @importFrom stats prcomp
+#' @importFrom SummarizedExperiment assay
 #' @param sce viccc object.
 #' @param save logical. Whether to save pca results to file
 #' @param overwrite logical. If true, pca file will overwrite preivous pca if one exists. Default TRUE. 
@@ -282,6 +288,8 @@ computeGrid <- function(sce,
 #' in PCA space.
 #' @return viccc object with defined grid points in PCA space
 #' @import SingleCellExperiment
+#' @importFrom SummarizedExperiment assay
+#' @importFrom stats dist
 #' @param sce viccc object. Must have already executed the function runPCA().
 #' @param est logical. Whether to estimate the max distance with a downsampled subset of data. Default TRUE.
 #' @param useGenes logical. Whether to use full gene space to calculate distance. Setting this to TRUE
@@ -330,6 +338,7 @@ computeDist <- function(sce,
 #' @title Grid-based smoothing of inferred velocities
 #' @description Uses inverse distance weighting to compute a smoothed grid of velocity vectors.
 #' @return viccc object with smoothed data in sce@metadata$grid.df
+#' @importFrom stats na.omit dist
 #' @param sce viccc object after computing inferred velocities.
 #' @param scalingFactor numeric. Constant to multiply vectors by for visual clarity.
 #' @param unitVectors logical. Whether to scale grid point vectors to a magnitude of 1. Default FALSE. 
@@ -474,6 +483,7 @@ Avg_IDW <- function(vals, weights) {
 #' @title Distance function
 #' @description Small utility function to compute dist of a given matrix
 #' @return dist
+#' @importFrom stats as.dist
 #' @param x numeric input matrix.
 distfun=function(x) {
   return(as.dist((1-cor(t(x), method = 's'))/20))
@@ -499,6 +509,7 @@ listToNumeric <- function(x) {
 #' @return NULL
 #' @import ggplot2
 #' @importFrom varhandle check.numeric
+#' @importFrom grDevices pdf dev.off
 #' @param sce viccc object after computing inferred velocities
 #' @param colorVar character. Colname of colData(sce) by which to color the plot, or NA to plot all grey
 #' @param plotLoadings logical. Whether to plot the loadings for each gene. Only recommended for
@@ -646,6 +657,7 @@ plotVectors <- function(sce,
 #' @return NULL
 #' @import ggplot2
 #' @importFrom varhandle check.numeric
+#' @importFrom grDevices pdf dev.off
 #' @param sce viccc object after computing inferred velocities
 #' @param colorVar character. Colname of colData(sce) by which to color the plot. May be left NA for grey plot
 #' @param plotLoadings logical. Whether to plot the loadings for each gene. Only recommended for
@@ -796,7 +808,8 @@ plotGrid <- function(sce,
 #' and predicted vectors.
 #' @importFrom MASS ginv
 #' @importFrom plyr revalue
-#' @importFrom stats cor
+#' @importFrom stats cor sd
+#' @importFrom SummarizedExperiment assay
 #' @param sce sticcc object 
 #' @param query_point character. Rowname of posMat indicating which sample to compute a vector for.
 #' @param useGinv logical. Whether to use generalized inverse for computing least-squares regression. 
@@ -1209,6 +1222,7 @@ smoothVector <- function(sce,
 #' @description Finds neighboring samples around the supplied point.
 #' @return A list containing the following elements: "neighbor.ids": the names of the nearby samples,
 #' "neighbor.dists": distances from each neighbor to the query point.
+#' @importFrom SummarizedExperiment assay
 #' @param sce sticcc object 
 #' @param queryPoint character or vector. Either a rowname of sce, or a vector to be compared to 
 #' the normalized expression data.
@@ -1223,14 +1237,14 @@ getNeighbors <- function(sce,
                          useGenes = FALSE,
                          reduction = "PCA") {
   # Find neighborhood members
-  if(all(queryPoint %in% colnames(sce))) {
-    queryData <- assay(sce)[,queryPoint]
-  } #else if(length(queryPoint) != nrow(assay(sce)))  {
+  #if(all(queryPoint %in% colnames(sce))) {
+  #  queryData <- assay(sce)[,queryPoint]
+  #} #else if(length(queryPoint) != nrow(assay(sce)))  {
     #print(paste0("Error: query should be a colname of sce or have same rows as sce assay: ",nrow(assay(sce))))
     #return(NULL)
-  else {
-    queryData <- queryPoint
-  }
+  #else {
+  queryData <- queryPoint
+  #}
   
   
   if(useGenes) {

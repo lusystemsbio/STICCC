@@ -20,7 +20,9 @@ Imports:
     stats,
     tidyr,
     varhandle,
-    visNetwork
+    visNetwork,
+    S4Vectors,
+    SummarizedExperiment
 Suggests: 
     knitr,
     rmarkdown
