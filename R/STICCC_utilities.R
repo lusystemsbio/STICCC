@@ -1243,7 +1243,7 @@ getNeighbors <- function(sce,
     #print(paste0("Error: query should be a colname of sce or have same rows as sce assay: ",nrow(assay(sce))))
     #return(NULL)
   #else {
-  queryData <- queryPoint
+  queryData <- t(matrix(queryPoint))
   #}
   
   
