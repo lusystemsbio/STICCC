@@ -12,7 +12,7 @@ plotNetwork(sce, outputDir = NA, plot_suffix = NA)
 \item{outputDir}{character. Directory to save plot. Default is a subdirectory of the working 
 directory with the same name as sce@metadata$topoName, which will be created if it does not exist}
 
-\item{plotSuffix}{character. String to append to plot filename. Default is the current time.}
+\item{plot_suffix}{character. String to append to plot filename. Default is the current time.}
 }
 \description{
 Saves an image of the network topology

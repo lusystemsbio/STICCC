@@ -14,6 +14,8 @@ the normalized expression data.}
 
 \item{neighborhoodRadius}{numeric. Proportion of the maximum pairwise distance within sce to find
 neighbors to compute vectors for.}
+
+\item{...}{Other parameters for the computeVector function.}
 }
 \value{
 A list containing the following elements: "start": the query point, "v1_x": v1 prediction

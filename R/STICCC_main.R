@@ -10,6 +10,7 @@
 #' @param v2 logical. If TRUE, will calculate v2 (incoming transition) as well as v1 (outgoing). Default TRUE.
 #' @param useGinv logical. Whether to use generalized inverse for computing least-squares regression. 
 #' Default FALSE, but may be helpful with very homogeneous datasets.
+#' @param ... Other parameters for the computeVector function.
 runSTICCC <- function(sce, v2=TRUE, useGinv=FALSE, ...
 ) {
 

@@ -13,6 +13,8 @@ runSTICCC(sce, v2 = TRUE, useGinv = FALSE, ...)
 
 \item{useGinv}{logical. Whether to use generalized inverse for computing least-squares regression. 
 Default FALSE, but may be helpful with very homogeneous datasets.}
+
+\item{...}{Other parameters for the computeVector function.}
 }
 \value{
 sce object with velocities - see colData(sce) for the first two components (dX and dY),

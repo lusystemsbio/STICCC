@@ -1034,7 +1034,7 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
 #' @param sce sticcc object 
 #' @param outputDir character. Directory to save plot. Default is a subdirectory of the working 
 #' directory with the same name as sce@metadata$topoName, which will be created if it does not exist
-#' @param plotSuffix character. String to append to plot filename. Default is the current time. 
+#' @param plot_suffix character. String to append to plot filename. Default is the current time. 
 plotNetwork <- function(sce, outputDir=NA, plot_suffix=NA) {
   if(is.na(outputDir)) {
     outputDir <- file.path(getwd(),sce@metadata$topoName)
@@ -1107,6 +1107,7 @@ plotNetwork <- function(sce, outputDir=NA, plot_suffix=NA) {
 #' the normalized expression data.
 #' @param neighborhoodRadius numeric. Proportion of the maximum pairwise distance within sce to find
 #' neighbors to compute vectors for.
+#' @param ... Other parameters for the computeVector function.
 smoothVector <- function(sce,
                          queryPoint, # 
                          neighborhoodRadius,
