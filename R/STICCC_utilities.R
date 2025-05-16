@@ -1,6 +1,6 @@
-#' @export
-utils::globalVariables(c("X", "Y", "dX", "dY", "PC1", "PC2", "gene"))
+utils::globalVariables(c("X", "Y", "dX", "dY", "dx", "dy", "PC1", "PC2", "gene"))
 
+#' @export
 #' @title Load topology file
 #' @description Returns a data.frame from reading a .tpo file with 3 columns: Source, Target, Type. Type 1 indicates
 #' activation and type 2 indicates inhibition.

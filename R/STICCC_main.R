@@ -7,7 +7,7 @@
 #' and sce@metadata$vectors for all components.
 #' @importFrom plyr revalue
 #' @importFrom SummarizedExperiment assay colData<-
-#' @importFrom utils txtProgressBar setTextProgressBar
+#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom S4Vectors SimpleList
 #' @param sce sticcc object. Must have already supplied a topology and executed the functions runPCA() and computeDist().
 #' @param v2 logical. If TRUE, will calculate v2 (incoming transition) as well as v1 (outgoing). Default TRUE.

@@ -7,8 +7,7 @@ Maintainer: Daniel Ramirez <ramirez.dan@northeastern.edu>
 Description: Predicts reversible and irreversible transitions in gene
     expression data based on an input gene regulatory network.  Use four
     spaces when indenting paragraphs within the Description.
-License: GPL-3
-License-file: LICENSE
+License: MIT + file LICENSE
 Depends: 
     ggplot2,
     SingleCellExperiment,
