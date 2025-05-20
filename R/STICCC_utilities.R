@@ -85,7 +85,8 @@ sticSE <- function(topo,
                   verbose = T,
                   useOriginalFeatures = F,
                   nPCs = NA,
-                  plotDim = "PCA"
+                  plotDim = "PCA",
+                  nDistPCs = 10
                   ) {
   if(!all(is.na(exprMat))) {
     stic <- SingleCellExperiment(assays = SimpleList(counts=exprMat, normcounts=normData))  
@@ -521,6 +522,7 @@ listToNumeric <- function(x) {
 #' @param plotSuffix character. Suffix for plot filename.
 #' @param scalingFactor numeric. Constant to multiply vectors by for visual clarity.
 #' @param plotNoVectors logical. Set to TRUE to plot only the PCA without vectors. Default FALSE.
+#' @param return logical. Whether to return the image as a ggplot object
 plotVectors <- function(sce,
                           colorVar = NA,
                           plotLoadings = F,
@@ -529,7 +531,8 @@ plotVectors <- function(sce,
                           outputDir = NA,
                           plotSuffix = NA,
                           scalingFactor = NA,
-                          plotNoVectors = F) {
+                          plotNoVectors = F,
+                          return = F) {
 
   ## Create directory for output
   if(is.na(outputDir)) {
@@ -648,6 +651,9 @@ plotVectors <- function(sce,
                              arrow = arrow(length = unit(0.2,"cm"))))
   dev.off()
 
+  if(return) {
+    return(image)
+  }
 }
 
 #' @export
@@ -671,6 +677,7 @@ plotVectors <- function(sce,
 #' @param minMagnitude numeric. Smallest magnitude for which a vector will be drawn. Default 0.01.
 #' @param arrowSize numeric. Size of arrows in plot.
 #' @param arrowheadSize numeric. Size of arrowheads in plot.
+#' @param return logical. Whether to return the image as a ggplot object
 plotGrid <- function(sce,
                      colorVar = NA,
                      plotLoadings = F,
@@ -681,7 +688,8 @@ plotGrid <- function(sce,
                      scalingFactor = NA,
                      minMagnitude = 0.01,
                      arrowSize = 3,
-                     arrowheadSize = 0.3) {
+                     arrowheadSize = 0.3,
+                     return = FALSE) {
 
   ## Create directory for output
   if(is.na(outputDir)) {
@@ -793,6 +801,10 @@ plotGrid <- function(sce,
   pdf(file = fileName, width = 10, height = 10)
   print(image)
   dev.off()
+  
+  if(return) {
+    return(image)
+  }
 }
 
 
@@ -821,7 +833,10 @@ plotGrid <- function(sce,
 #' than this limit, this value will be used to randomly sample a subset.
 computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeighbors = 100) {
   ## Prepare results
-  rs_list <- list("X"=NA,"Y"=NA,"fewNeighbors"=FALSE,"numNeighbors"=NA,"usedGinv"=FALSE,"nonInvertible"=FALSE,"selfCorNA"=FALSE,"selfCor"=NA,"b_vec"=NA,"b_vec_in"=NA,"det"=NA)
+  rs_list <- list("X"=NA,"Y"=NA,"fewNeighbors"=FALSE,"numNeighbors"=NA,
+                  "usedGinv"=FALSE,"nonInvertible"=FALSE,"selfCorNA"=FALSE,
+                  "selfCor"=NA,"b_vec"=NA,"b_vec_in"=NA,"det"=NA,
+                  "inverseDelayedCorNA"=FALSE, "delayedCorNA"=FALSE)
   
   ## extract variables from sce
   # Create sign vector
@@ -952,7 +967,7 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
   for(model in rownames(deriv_df)) {
     # Correlate neighbor target activity with query source activity * sign_vector
     neighbor_target_activity <- as.numeric(exprMat[topo$Target, model]) 
-    if(sd(neighbor_target_activity) > 0 & sd(src_activity)) {
+    if(sd(neighbor_target_activity) > 0 & sd(src_activity) > 0) {
       neighbor_cor <- cor(neighbor_target_activity,src_activity) 
       deriv_df[model,"DelayedCorr"] <- (neighbor_cor - self_cor)
     } else {
@@ -972,6 +987,10 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
     x_mat <- x_mat[,-na_models]
   }
   
+  if(nrow(deriv_df) == 0) {
+    rs_list[["delayedCorNA"]] <- TRUE
+    return(rs_list) # early stop if no neighbors can compute a CCC
+  } 
   
   # Compute product of earlier matrix product and delayed corr vector
   corr_vec <- as.matrix(deriv_df[,"DelayedCorr"])
@@ -1009,8 +1028,13 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
     for(model in rownames(deriv_df)) {
       # Correlate neighbor source activity * sign_vector with query target activity 
       neighbor_src_activity <- as.numeric(exprMat[topo$Source, model]) * sign_vector
-      neighbor_cor <- cor(neighbor_src_activity,self_target_activity)
-      deriv_df[model,"DelayedCorr_in"] <- (neighbor_cor - self_cor)
+      if(sd(neighbor_src_activity) > 0 & sd(self_target_activity) > 0) {
+        neighbor_cor <- cor(neighbor_src_activity,self_target_activity) 
+        deriv_df[model,"DelayedCorr_in"] <- (neighbor_cor - self_cor)
+      } else {
+        deriv_df[model,"DelayedCorr_in"] <- NA
+      }
+
     }
     
     # Remove NA values caused by zero variance vectors
@@ -1020,6 +1044,11 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
       subset_models <- subset_models[-na_models,]
       x_mat <- x_mat[,-na_models]
     }
+    
+    if(nrow(deriv_df) == 0) {
+      rs_list[["inverseDelayedCorNA"]] <- TRUE
+      return(rs_list) # early stop if no neighbors can compute a CCC
+    } 
     
     
     # Compute product of earlier matrix product and delayed corr vector
@@ -1162,6 +1191,10 @@ smoothVector <- function(sce,
                               v2 = T,
                               ...)
     
+    if(all(is.na(v_list[["b_vec"]]))) {
+      next
+    }
+    
     # add to aggregated results
     neighborhoodVectors[which(neighborhoodVectors$SampleID == neighbor), "V1_x"] <- v_list[["b_vec"]][1,]
     neighborhoodVectors[which(neighborhoodVectors$SampleID == neighbor), "V1_y"] <- v_list[["b_vec"]][2,]
@@ -1180,7 +1213,7 @@ smoothVector <- function(sce,
   smoothingDist <- neighborhoodRadius * sce@metadata$max_dist
   neighborhoodVectors <- neighborhoodVectors[which(neighborhoodVectors$Dist < smoothingDist),]
   
-  if(nrow(neighborhoodVectors) < 3) {
+  if(nrow(neighborhoodVectors) < 3 | length(which(!is.na(neighborhoodVectors$Net_x))) < 3) {
     print("Warning: not enough vectors to smooth - consider increasing smoothingRadius")
   }
   

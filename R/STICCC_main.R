@@ -56,6 +56,8 @@ runSTICCC <- function(sce, v2=TRUE, useGinv=FALSE, ...
   colData(sce)$fewNeighbors <- FALSE
   colData(sce)$nonInvertible <- FALSE
   colData(sce)$selfCorNA <- FALSE
+  colData(sce)$delayedCorNA <- FALSE
+  colData(sce)$inverseDelayedCorNA <- FALSE
   #colData(sce)$rcond <- NA
   #sce@metadata$det_list <- list()
 
@@ -83,6 +85,8 @@ runSTICCC <- function(sce, v2=TRUE, useGinv=FALSE, ...
     colData(sce)[query_point,"nonInvertible"] <- rs_list[["nonInvertible"]]
     colData(sce)[query_point,"selfCorNA"] <- rs_list[["selfCorNA"]]
     colData(sce)[query_point,"selfCor"] <- rs_list[["selfCor"]]
+    colData(sce)[query_point,"delayedCorNA"] <- rs_list[["delayedCorNA"]]
+    colData(sce)[query_point,"inverseDelayedCorNA"] <- rs_list[["inverseDelayedCorNA"]]
     #sce@metadata$det_list[[query_point]] <- rs_list[["det_list"]]
     
     if(length(rs_list[["b_vec"]]) == 1) {
