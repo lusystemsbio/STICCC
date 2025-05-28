@@ -316,7 +316,11 @@ computeDist <- function(sce,
     } else if(reduction == "PCA") {
         PCAmat <- reducedDim(sce,"PCA")
         dist_space <- PCAmat[,1:min(nComponents, ncol(PCAmat))]
-    } 
+    } else if(reduction == "TSNE") {
+        TSNEmat <- reducedDim(sce,"TSNE")
+        dist_space <- TSNEmat[,1:min(nComponents, ncol(TSNEmat))]
+      
+    }
   }
 
   if(est) {
@@ -712,7 +716,9 @@ plotGrid <- function(sce,
   if(is.na(plotSuffix)) {
     plotSuffix <- format(Sys.time(), "%b_%d")
   }
-  fileName <- file.path(outputDir,paste0("PCA_grid_",expName,"_",plotSuffix,".pdf"))
+  
+  reduction <- sce@metadata$params$plotDim
+  fileName <- file.path(outputDir,paste0(reduction,"_grid_",expName,"_",plotSuffix,".pdf"))
 
 
   # Get 2D plotting coordinates of samples from first 2 cols of position matrix
@@ -729,10 +735,17 @@ plotGrid <- function(sce,
   yMax <- sce@metadata$params$yMax
 
   # Get proportion of variance for PCs 1 and 2 for axis labels
-  pc1_weight <- round(100*sce@metadata$pca_summary$importance[2,1],2)
-  pc2_weight <- round(100*sce@metadata$pca_summary$importance[2,2],2)
-  plot_xlab <- paste("PC1 (",pc1_weight,"%)",sep="")
-  plot_ylab <- paste("PC2 (",pc2_weight,"%)",sep="")
+  if(reduction == "PCA") {
+    pc1_weight <- round(100*sce@metadata$pca_summary$importance[2,1],2)
+    pc2_weight <- round(100*sce@metadata$pca_summary$importance[2,2],2)
+    plot_xlab <- paste("PC1 (",pc1_weight,"%)",sep="")
+    plot_ylab <- paste("PC2 (",pc2_weight,"%)",sep="")
+  } else { 
+    plot_xlab <- paste0(reduction,"1")
+    plot_ylab <- paste0(reduction,"2")
+    
+  }
+  
 
   # get loadings if applicable
   if(plotLoadings) {
@@ -1293,7 +1306,10 @@ getNeighbors <- function(sce,
     } else if(reduction == "PCA") {
       PCAmat <- reducedDim(sce,"PCA")
       dist_space <- PCAmat[,1:min(nComponents, ncol(PCAmat))]
-    } 
+    } else if(reduction == "TSNE") {
+      TSNEmat <- reducedDim(sce,"TSNE")
+      dist_space <- TSNEmat[,1:min(nComponents, ncol(TSNEmat))]
+    }
   }
   
   max_dist <- sce@metadata$max_dist

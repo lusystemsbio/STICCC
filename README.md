@@ -3,7 +3,7 @@ State transition inference using cross-cell correlations
 
 
 ## Installation
-devtools::install_github("lusystemsbio/viccc.git")
+devtools::install_github("lusystemsbio/viccc")
 
 ## Vignettes
 For an example workflow, see the vignettes folder which shows the analysis of a small simulated gene circuit.
