@@ -899,7 +899,7 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
   
   ## Find neighbors
   #neighbors <- which(sce@metadata$dist_mat[query_point,colnames(sce)] <= sampling_radius)
-  neighbors <- getNeighbors(sce, neighbor_query, sce@metadata$params$sample_radius)$neighbor.ids
+  neighbors <- getNeighbors(sce, unlist(neighbor_query), sce@metadata$params$sample_radius)$neighbor.ids
   
   ## Skip sample if number of neighbors too small
   if(length(neighbors) <= (sce@metadata$params$minNeighbors+1)) {
