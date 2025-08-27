@@ -1051,7 +1051,7 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
     }
     
     # Remove NA values caused by zero variance vectors
-    na_models <- which(is.na(deriv_df$DelayedCorr))
+    na_models <- which(is.na(deriv_df$DelayedCorr_in))
     if(length(na_models) > 0) {
       deriv_df <- deriv_df[-na_models,]
       subset_models <- subset_models[-na_models,]
