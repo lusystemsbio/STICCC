@@ -200,6 +200,8 @@ runPCA <- function(sce,
   
   if(save & (!file.exists(fname) | overwrite)) {
     saveRDS(pca, file=fname)
+  } else if(overwrite == F) {
+    pca <- readRDS(fname) 
   }
 
   # add PCA to SCE object
