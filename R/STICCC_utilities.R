@@ -1012,6 +1012,11 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
   b_vec <- x_mat %*% corr_vec
   rs_list[["b_vec"]] <- b_vec
   
+  y_vec <- as.numeric(deriv_df$DelayedCorr)               
+  y_hat <- as.vector(X_mat %*% b_vec)                     
+  rs_list[["r2_corr"]] <- if (sd(y_hat) > 0 && sd(y_vec) > 0) cor(y_vec, y_hat)^2 else NA_real_
+  rs_list[["rmse"]] <- sqrt(mean((y_vec - y_hat)^2))
+  
   ### Bias didn't seem to make a big difference
   # if(bias) {
   #   ## Split data into train/test 80:20
@@ -1075,6 +1080,12 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
     }
     
     rs_list[["b_vec_in"]] <- b_vec_in
+    
+    
+    y_vec <- as.numeric(deriv_df$DelayedCorr_in)               
+    y_hat <- as.vector(X_mat %*% b_vec_in)            
+    rs_list[["v2_r2_corr"]] <- if (sd(y_hat) > 0 && sd(y_vec) > 0) cor(y_vec, y_hat)^2 else NA_real_
+    rs_list[["v2_rmse"]] <- sqrt(mean((y_vec - y_hat)^2))
     
   }
   

@@ -87,6 +87,8 @@ runSTICCC <- function(sce, v2=TRUE, useGinv=FALSE, ...
     colData(sce)[query_point,"selfCor"] <- rs_list[["selfCor"]]
     colData(sce)[query_point,"delayedCorNA"] <- rs_list[["delayedCorNA"]]
     colData(sce)[query_point,"inverseDelayedCorNA"] <- rs_list[["inverseDelayedCorNA"]]
+    colData(sce)[query_point,"r2_corr"] <- rs_list[["r2_corr"]]
+    colData(sce)[query_point,"rmse"] <- rs_list[["rmse"]]
     #sce@metadata$det_list[[query_point]] <- rs_list[["det_list"]]
     
     if(length(rs_list[["b_vec"]]) == 1) {
@@ -121,6 +123,8 @@ runSTICCC <- function(sce, v2=TRUE, useGinv=FALSE, ...
       ## Update colData
       colData(sce)[query_point,"dX_in"] <- saved_vector_in[1]
       colData(sce)[query_point,"dY_in"] <- saved_vector_in[2]
+      colData(sce)[query_point,"v2_r2_corr"] <- rs_list[["v2_r2_corr"]]
+      colData(sce)[query_point,"v2_rmse"] <- rs_list[["v2_rmse"]]
     }
     
     
