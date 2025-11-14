@@ -851,7 +851,8 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
   rs_list <- list("X"=NA,"Y"=NA,"fewNeighbors"=FALSE,"numNeighbors"=NA,
                   "usedGinv"=FALSE,"nonInvertible"=FALSE,"selfCorNA"=FALSE,
                   "selfCor"=NA,"b_vec"=NA,"b_vec_in"=NA,"det"=NA,
-                  "inverseDelayedCorNA"=FALSE, "delayedCorNA"=FALSE)
+                  "inverseDelayedCorNA"=FALSE, "delayedCorNA"=FALSE,
+                  "r2_corr"=NA,"rmse"=NA,"v2_r2_corr"=NA,"v2_rmse"=NA)
   
   ## extract variables from sce
   # Create sign vector
@@ -1013,7 +1014,7 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
   rs_list[["b_vec"]] <- b_vec
   
   y_vec <- as.numeric(deriv_df$DelayedCorr)               
-  y_hat <- as.vector(X_mat %*% b_vec)                     
+  y_hat <- as.vector(geneex_mat %*% b_vec)                     
   rs_list[["r2_corr"]] <- if (sd(y_hat) > 0 && sd(y_vec) > 0) cor(y_vec, y_hat)^2 else NA_real_
   rs_list[["rmse"]] <- sqrt(mean((y_vec - y_hat)^2))
   
@@ -1083,7 +1084,7 @@ computeVector <- function(sce, query_point, useGinv=F, v2=T, invertV2=F, maxNeig
     
     
     y_vec <- as.numeric(deriv_df$DelayedCorr_in)               
-    y_hat <- as.vector(X_mat %*% b_vec_in)            
+    y_hat <- as.vector(geneex_mat %*% b_vec_in)            
     rs_list[["v2_r2_corr"]] <- if (sd(y_hat) > 0 && sd(y_vec) > 0) cor(y_vec, y_hat)^2 else NA_real_
     rs_list[["v2_rmse"]] <- sqrt(mean((y_vec - y_hat)^2))
     
