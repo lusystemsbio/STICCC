@@ -51,9 +51,9 @@ simTopo <- function(topo,
 }
 
 #' @export
-#' @title Create VICCC object.
-#' @description Returns a SingleCellExperiment object initialized for use with VICCC methods.
-#' @return SingleCellExperiment object modified slightly for VICCC methods.
+#' @title Create STICCC object.
+#' @description Returns a SingleCellExperiment object initialized for use with STICCC methods.
+#' @return SingleCellExperiment object modified slightly for STICCC methods.
 #' @import SingleCellExperiment
 #' @param topo data.frame. Topology table.
 #' @param exprMat data.frame or matrix. Expression matrix with genes as rows and cells as columns.
@@ -68,7 +68,7 @@ simTopo <- function(topo,
 #' Default 5.
 #' @param scalingFactor numeric. Factor to multiply the magnitude of vectors for easier visual interpretation. Default 1.
 #' @param gridScalingFactor numeric. Factor to multiply the magnitude of vectors when applying grid-based smoothing. Default 1.
-#' @param verbose logical. Whether to print progress statements during analysis with this VICCC object. Default TRUE.
+#' @param verbose logical. Whether to print progress statements during analysis with this STICCC object. Default TRUE.
 #' @param useOriginalFeatures logical. Whether to calculate vectors in gene space instead of projected space. Default FALSE.
 #' @param nPCs numeric. How many components to use for vector output. 
 #' @param nDistPCs numeric. How many components to use for distance calculation. 
@@ -177,10 +177,10 @@ getClusters <- function(k = 2,                  # Number of clusters
 #' @export
 #' @title Perform PCA on gene expression data
 #' @description Returns a vector of cluster numbers corresponding to each cell in a dataset.
-#' @return modified viccc object containing pca transformed data in reducedDim(obj, "PCA") and pca parameters in obj@metadata$pca_data.
+#' @return modified STICCC object containing pca transformed data in reducedDim(obj, "PCA") and pca parameters in obj@metadata$pca_data.
 #' @importFrom stats prcomp
 #' @importFrom SummarizedExperiment assay
-#' @param sce viccc object.
+#' @param sce STICCC object.
 #' @param save logical. Whether to save pca results to file
 #' @param overwrite logical. If true, pca file will overwrite preivous pca if one exists. Default TRUE. 
 #' Set this to FALSE if you intend to use a specific PCA projection for further analysis
@@ -217,10 +217,10 @@ runPCA <- function(sce,
 #' @title Compute grid points for later smoothing
 #' @description Computes grid points for future steps that will smooth the inferred velocities
 #' in PCA space.
-#' @return viccc object with defined grid points in PCA space
+#' @return STICCC object with defined grid points in PCA space
 #' @import SingleCellExperiment
 #' @importFrom tidyr expand_grid
-#' @param sce viccc object. Must have already executed the function runPCA().
+#' @param sce STICCC object. Must have already executed the function runPCA().
 #' @param grid.length numeric. How many grid points should be in each side of the smoothed plot.
 #' Default 30.
 #' @param xMin numeric. Lower bound for plotting on x-axis.
@@ -290,11 +290,11 @@ computeGrid <- function(sce,
 #' @title Compute pairwise distance between single cells in PCA space
 #' @description Computes grid points for future steps that will smooth the inferred velocities
 #' in PCA space.
-#' @return viccc object with defined grid points in PCA space
+#' @return STICCC object with defined grid points in PCA space
 #' @import SingleCellExperiment
 #' @importFrom SummarizedExperiment assay
 #' @importFrom stats dist
-#' @param sce viccc object. Must have already executed the function runPCA().
+#' @param sce STICCC object. Must have already executed the function runPCA().
 #' @param est logical. Whether to estimate the max distance with a downsampled subset of data. Default TRUE.
 #' @param useGenes logical. Whether to use full gene space to calculate distance. Setting this to TRUE
 #' will significantly slow down the operation. Default FALSE.
@@ -344,9 +344,9 @@ computeDist <- function(sce,
 #' @export
 #' @title Grid-based smoothing of inferred velocities
 #' @description Uses inverse distance weighting to compute a smoothed grid of velocity vectors.
-#' @return viccc object with smoothed data in sce@metadata$grid.df
+#' @return STICCC object with smoothed data in sce@metadata$grid.df
 #' @importFrom stats na.omit dist
-#' @param sce viccc object after computing inferred velocities.
+#' @param sce STICCC object after computing inferred velocities.
 #' @param scalingFactor numeric. Constant to multiply vectors by for visual clarity.
 #' @param unitVectors logical. Whether to scale grid point vectors to a magnitude of 1. Default FALSE. 
 #' @param inVectors logical. Whether to compute grid vectors using v2 predictions instead of v1. Default FALSE
@@ -517,7 +517,7 @@ listToNumeric <- function(x) {
 #' @import ggplot2
 #' @importFrom varhandle check.numeric
 #' @importFrom grDevices pdf dev.off
-#' @param sce viccc object after computing inferred velocities
+#' @param sce STICCC object after computing inferred velocities
 #' @param colorVar character. Colname of colData(sce) by which to color the plot, or NA to plot all grey
 #' @param plotLoadings logical. Whether to plot the loadings for each gene. Only recommended for
 #' very small (<5 gene) circuits. Default FALSE.
@@ -670,7 +670,7 @@ plotVectors <- function(sce,
 #' @import ggplot2
 #' @importFrom varhandle check.numeric
 #' @importFrom grDevices pdf dev.off
-#' @param sce viccc object after computing inferred velocities
+#' @param sce STICCC object after computing inferred velocities
 #' @param colorVar character. Colname of colData(sce) by which to color the plot. May be left NA for grey plot
 #' @param plotLoadings logical. Whether to plot the loadings for each gene. Only recommended for
 #' very small (<5 gene) circuits. Default FALSE.

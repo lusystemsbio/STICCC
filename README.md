@@ -18,7 +18,7 @@ The input is a GRN, structured as a table with three columns Source, Target, and
 
 
 ## Installation
-STICCC can be installed via GitHub using devtools or remotes: ``devtools::install_github("lusystemsbio/viccc")``
+STICCC can be installed via GitHub using devtools or remotes: ``devtools::install_github("lusystemsbio/sticcc")``
 
 Then call the package using ``library(STICCC)``
 

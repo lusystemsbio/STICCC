@@ -1,7 +1,7 @@
 Type: Package
 Package: STICCC
 Title: State Transition Inference using Cross-Cell Correlation
-Version: 0.1.0
+Version: 1.0.0
 Author: Daniel Ramirez
 Maintainer: Daniel Ramirez <ramirez.dan@northeastern.edu>
 Description: Predicts reversible and irreversible transitions in gene
