@@ -112,6 +112,6 @@ For an example workflow, see the vignettes folder which shows the analysis of a 
 More detailed analysis scripts are available at: https://github.com/lusystemsbio/sticcc_analysis
 
 ## References
-For more information, see the original preprint at: https://www.biorxiv.org/content/10.1101/2024.08.30.610498v1
+For more information, see the original article: Ramirez D, Lu M. Dissecting reversible and irreversible single cell state transitions from gene regulatory networks. Mol Syst Biol. 2026. doi:10.1038/s44320-026-00196-8.
 
 
